@@ -12,6 +12,8 @@ class BlockSpec extends FreeSpec with Matchers {
     1000
   )
 
+  implicit val cryptoHash = new CryptoHash
+
   "should be success" in {
     assert(true)
   }
@@ -75,6 +77,13 @@ class BlockSpec extends FreeSpec with Matchers {
     "should not lower than 1" in {
       val minus1BlockDifficulty = block.copy(difficulty = -1)
       Block.adjustDifficulty(minus1BlockDifficulty).difficulty shouldBe 1
+    }
+  }
+
+  "isValidBlock" - {
+    "should fail when the hash is not correct" in {
+      val block = Block(0, "lastHash", "hash", "data", 0, 1)
+      Block.isValidBlock(block) shouldBe false
     }
   }
 }

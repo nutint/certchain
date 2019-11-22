@@ -22,7 +22,6 @@ case class Block(
 object Block {
   def genesis(implicit bcConfig: BlockchainConfig): Block = bcConfig.genesisData
 
-
   @scala.annotation.tailrec
   def mineBlock(
     lastBlock: Block, data: String, nonce: Int
@@ -51,5 +50,9 @@ object Block {
     if (originalBlock.difficulty < 1) originalBlock.sanitizeDifficulty
     else if (timestamp - originalBlock.timestamp > bcConfig.mineRate) originalBlock.decreaseDifficulty
     else originalBlock.increaseDifficulty
+  }
+
+  def isValidBlock(block: Block)(implicit cryptoHash: CryptoHash): Boolean = {
+    block.hash == cryptoHash.hash(List(block.timestamp, block.difficulty, block.data, block.lastHash, block.nonce).map(_.toString))
   }
 }
