@@ -75,9 +75,9 @@ class BlockchainSpec extends FreeSpec with Matchers {
       }
 
       "should replace when new chain is pass validation, and longer then current chain" in {
-        val currentChain = multipleBlocksInChains.chain
-        val newBlockChain = multipleBlocksInChains.addBlock("anotherBlock")
-        multipleBlocksInChains.replaceChain(newBlockChain.chain).chain shouldBe newBlockChain.chain
+        val blockChain = multipleBlocksInChains
+        val newBlockChain = blockChain.addBlock("anotherBlock")
+        blockChain.replaceChain(newBlockChain.chain).chain shouldBe newBlockChain.chain
       }
     }
   }
