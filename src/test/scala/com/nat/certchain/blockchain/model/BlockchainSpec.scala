@@ -23,6 +23,11 @@ class BlockchainSpec extends FreeSpec with Matchers {
       newBlockchain.chain.reverse.headOption.map(_.data) shouldBe Some("new data")
     }
 
+    def multipleBlocksInChains = blockchain
+      .addBlock("1st block")
+      .addBlock("2nd block")
+      .addBlock("3rd block")
+
     "isValidChain()" - {
       "when the chain is not start with genesis block should be error" in {
         val nonGenesisBlock = blockchainConfig.genesisData.copy(hash = "invalid hash")
@@ -31,17 +36,13 @@ class BlockchainSpec extends FreeSpec with Matchers {
       }
 
       "when starts with genesis block and has multiple blocks" - {
-        def multipleBlocksInChains = blockchain
-          .addBlock("1st block")
-          .addBlock("2nd block")
-          .addBlock(("3rd block"))
 
         "and last hash reference has changed" in {
           val invalidHashBlockchain = multipleBlocksInChains
             .copy(chain = multipleBlocksInChains
               .chain
               .map(block => if(block!==blockchainConfig.genesisData) block.copy(lastHash = "fakeLast Hash") else block))
-          Blockchain.isValidChain(invalidHashBlockchain.chain) shouldBe false
+          Blockchain.isValidChain(invalidHashBlockchain.chain) shouldBe  false
         }
 
         "and the chain data is tempered" in {
@@ -52,6 +53,31 @@ class BlockchainSpec extends FreeSpec with Matchers {
                 .map(block => if(block!==blockchainConfig.genesisData) block.copy(data = "fake fake data haha") else block))
           Blockchain.isValidChain(invalidDataBlockchain.chain) shouldBe false
         }
+
+        "and the chain is all correct" in {
+          Blockchain.isValidChain(multipleBlocksInChains.chain) shouldBe true
+        }
+      }
+    }
+
+    "replaceChain()" - {
+      "should not replace when the chain is not longer" in {
+        val originalBlockChain = multipleBlocksInChains
+        val currentChain = originalBlockChain.chain
+        originalBlockChain.replaceChain(Blockchain(blockchainConfig).chain).chain shouldBe currentChain
+      }
+
+      "should not replace if the target chain is not pass validation" in {
+        val blockChain = multipleBlocksInChains
+        val currentChain = blockChain.chain
+        val fakeDataChain = blockChain.addBlock("anotherBlock").chain.map(_.copy(data = "fakeData"))
+        blockChain.replaceChain(fakeDataChain).chain shouldBe currentChain
+      }
+
+      "should replace when new chain is pass validation, and longer then current chain" in {
+        val currentChain = multipleBlocksInChains.chain
+        val newBlockChain = multipleBlocksInChains.addBlock("anotherBlock")
+        multipleBlocksInChains.replaceChain(newBlockChain.chain).chain shouldBe newBlockChain.chain
       }
     }
   }
